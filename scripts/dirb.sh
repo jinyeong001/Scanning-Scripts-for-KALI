@@ -42,7 +42,7 @@ print_line() {
 dirb_scan() {
     local target_url=$1
     local temp_file="/tmp/dirb_temp.txt"
-    local log_file="dirbscan$(date +%Y%m%d_%H%M%S).log"
+    local log_file="../logs/dirb/dirbscan$(date +%Y%m%d_%H%M%S).log"
 
     # Create temp file if it doesn't exist
     touch "$temp_file"

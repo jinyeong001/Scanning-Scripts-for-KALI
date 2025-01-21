@@ -33,8 +33,8 @@ loading_animation() {
     echo -ne "\n"
 }
 
-# Create log file name with timestamp
-log_file="nmapscan$(date +%Y%m%d_%H%M%S).log"
+# Create log file name with timestamp in the correct directory
+log_file="../logs/nmap/nmapscan$(date +%Y%m%d_%H%M%S).log"
 
 # Run nmap scan in background and show loading animation
 echo -n "Starting Nmap scan on $TARGET_IP"
