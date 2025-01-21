@@ -21,7 +21,14 @@ create_directories() {
     if [ ! -d "logs/dirb" ]; then
         mkdir logs/dirb
     fi
+    if [ ! -d "logs/attack" ]; then
+        mkdir logs/attack
+    fi
 }
+
+# Create log file with timestamp
+log_file="logs/attack/attacklog$(date +%Y%m%d_%H%M%S).log"
+exec &> >(tee -a "$log_file")
 
 # Function to display menu
 show_menu() {
@@ -29,7 +36,9 @@ show_menu() {
         clear
         first_run=false
     fi
-    echo -e "${BLUE}=== Available Scanning Tools ===${NC}"
+    echo -e "${BLUE}============================================================${NC}"
+    echo -e "${BLUE}                    Available Scanning Tools                ${NC}"
+    echo -e "${BLUE}============================================================${NC}"
     echo "1. Nmap Port Scanner"
     echo "2. Dirb Directory Scanner"
     echo "3. Exit"
@@ -46,7 +55,6 @@ run_nmap() {
             read -p "Is this correct? (y/n): " confirm
             echo
             if [[ $confirm =~ ^[Yy]$ ]]; then
-                # Move to scripts directory and run nmap.sh
                 cd scripts
                 ./nmap.sh "$target_ip"
                 cd ..
@@ -65,9 +73,8 @@ run_dirb() {
         if [ ! -z "$target_url" ]; then
             echo -e "\nYou entered: ${GREEN}$target_url${NC}"
             read -p "Is this correct? (y/n): " confirm
-            echo 
+            echo
             if [[ $confirm =~ ^[Yy]$ ]]; then
-                # Move to scripts directory and run dirb.sh
                 cd scripts
                 ./dirb.sh "$target_url"
                 cd ..
@@ -83,6 +90,8 @@ run_dirb() {
 create_directories
 first_run=true
 
+echo -e "\n[+] Attack session started at $(date '+%Y-%m-%d %H:%M:%S')\n"
+
 while true; do
     show_menu
 
@@ -95,6 +104,7 @@ while true; do
             ;;
         3)
             echo -e "${YELLOW}Exiting...${NC}"
+            echo -e "\n[+] Attack session ended at $(date '+%Y-%m-%d %H:%M:%S')"
             exit 0
             ;;
         *)
@@ -106,7 +116,8 @@ while true; do
     read -p "Do you want to run another scan? (y/n): " continue_scan
     if [[ ! $continue_scan =~ ^[Yy]$ ]]; then
         echo -e "${YELLOW}Exiting...${NC}"
+        echo -e "\n[+] Attack session ended at $(date '+%Y-%m-%d %H:%M:%S')"
         break
     fi
-    echo  # Add a new line before showing menu again
+    echo
 done

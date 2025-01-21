@@ -1,18 +1,27 @@
 #!/bin/bash
 
+# Color definitions
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+NC='\033[0m'
+
+# Print banner
+echo -e "${YELLOW}============================================================${NC}"
+echo -e "${YELLOW}                    NMAP SCANNING RESULT                    ${NC}"
+echo -e "${YELLOW}============================================================${NC}"
+echo
+
 # Check if IP address is provided as argument
 if [ $# -eq 0 ]; then
     echo "Please provide target IP address"
-    echo "Usage: ./attack.sh <IP address>"
+    echo "Usage: ./nmap.sh <IP address>"
     exit 1
 fi
 
 TARGET_IP=$1
-
-# Color definitions
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m'
 
 # Function to show loading animation
 loading_animation() {

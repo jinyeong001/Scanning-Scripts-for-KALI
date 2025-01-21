@@ -1,18 +1,25 @@
 #!/bin/bash
 
-# Check if URL is provided as argument
-if [ $# -eq 0 ]; then
-    echo "Please provide target URL"
-    echo "Usage: ./dirb.sh <URL>"
-    exit 1
-fi
-
+# Color definitions
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 NC='\033[0m'
+
+# Print banner
+echo -e "${YELLOW}============================================================${NC}"
+echo -e "${YELLOW}                    DIRB SCANNING RESULT                    ${NC}"
+echo -e "${YELLOW}============================================================${NC}"
+echo
+
+# Check if URL is provided as argument
+if [ $# -eq 0 ]; then
+    echo "Please provide target URL"
+    echo "Usage: ./dirb.sh <URL>"
+    exit 1
+fi
 
 # Function to show loading animation
 loading_animation() {
