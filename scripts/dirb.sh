@@ -1,7 +1,5 @@
 #!/bin/bash
 
-clear
-
 # Check if URL is provided as argument
 if [ $# -eq 0 ]; then
     echo "Please provide target URL"

@@ -25,7 +25,10 @@ create_directories() {
 
 # Function to display menu
 show_menu() {
-    clear
+    if [ "$first_run" = true ]; then
+        clear
+        first_run=false
+    fi
     echo -e "${BLUE}=== Available Scanning Tools ===${NC}"
     echo "1. Nmap Port Scanner"
     echo "2. Dirb Directory Scanner"
@@ -36,32 +39,49 @@ show_menu() {
 
 # Function to handle nmap scan
 run_nmap() {
-    read -p "Enter target IP address: " target_ip
-    if [ ! -z "$target_ip" ]; then
-        # Move to scripts directory and run nmap.sh
-        cd scripts
-        ./nmap.sh "$target_ip"
-        cd ..
-    else
-        echo -e "${RED}Invalid IP address${NC}"
-    fi
+    while true; do
+        read -p "Enter target IP address: " target_ip
+        if [ ! -z "$target_ip" ]; then
+            echo -e "\nYou entered: ${GREEN}$target_ip${NC}"
+            read -p "Is this correct? (y/n): " confirm
+            echo
+            if [[ $confirm =~ ^[Yy]$ ]]; then
+                # Move to scripts directory and run nmap.sh
+                cd scripts
+                ./nmap.sh "$target_ip"
+                cd ..
+                break
+            fi
+        else
+            echo -e "${RED}Invalid IP address${NC}"
+        fi
+    done
 }
 
 # Function to handle dirb scan
 run_dirb() {
-    read -p "Enter target URL: " target_url
-    if [ ! -z "$target_url" ]; then
-        # Move to scripts directory and run dirb.sh
-        cd scripts
-        ./dirb.sh "$target_url"
-        cd ..
-    else
-        echo -e "${RED}Invalid URL${NC}"
-    fi
+    while true; do
+        read -p "Enter target URL: " target_url
+        if [ ! -z "$target_url" ]; then
+            echo -e "\nYou entered: ${GREEN}$target_url${NC}"
+            read -p "Is this correct? (y/n): " confirm
+            echo 
+            if [[ $confirm =~ ^[Yy]$ ]]; then
+                # Move to scripts directory and run dirb.sh
+                cd scripts
+                ./dirb.sh "$target_url"
+                cd ..
+                break
+            fi
+        else
+            echo -e "${RED}Invalid URL${NC}"
+        fi
+    done
 }
 
 # Main execution loop
 create_directories
+first_run=true
 
 while true; do
     show_menu
@@ -88,4 +108,5 @@ while true; do
         echo -e "${YELLOW}Exiting...${NC}"
         break
     fi
+    echo  # Add a new line before showing menu again
 done
