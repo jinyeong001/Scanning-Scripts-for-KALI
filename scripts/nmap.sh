@@ -41,8 +41,8 @@ echo -n "Starting Nmap scan on $TARGET_IP"
 sudo nmap $TARGET_IP -sV -v -p- 2>/dev/null > nmap_temp.log &
 loading_animation $!
 
-# Print header
-echo -e "\n[+] Discovered Ports:"
+# Print header and save to log
+echo -e "[+] Discovered Ports:" | tee "$log_file"
 
 # Function to print horizontal line
 print_line() {
@@ -50,9 +50,9 @@ print_line() {
 }
 
 # Print table header
-print_line
-printf "| %-10s | %-10s | %-16s | %-39s |\n" "PORT" "STATE" "SERVICE" "VERSION"
-print_line
+print_line | tee -a "$log_file"
+printf "| %-10s | %-10s | %-16s | %-39s |\n" "PORT" "STATE" "SERVICE" "VERSION" | tee -a "$log_file"
+print_line | tee -a "$log_file"
 
 # Extract and format the port information
 sed -n '/^PORT/,/^MAC Address/p' nmap_temp.log | \
@@ -70,15 +70,16 @@ while read line; do
         color=$RED
     fi
     
-    # Apply color to each column separately with white separators
+    # Print to screen with colors
     printf "${NC}| ${color}%-10s ${NC}|${color} %-10s ${NC}|${color} %-16s ${NC}|${color} %-39s ${NC}|\n" \
         "$port" "$state" "$service" "$version"
-    # Log to file without colors
-    printf "[PORT] %-10s | %-10s | %-16s | %-39s\n" "$port" "$state" "$service" "$version" >> "$log_file"
+    # Save to log file without colors
+    printf "| %-10s | %-10s | %-16s | %-39s |\n" \
+        "$port" "$state" "$service" "$version" >> "$log_file"
 done
 
-# Print bottom line
-print_line
+# Print and save bottom line
+print_line | tee -a "$log_file"
 
 # Clean up temporary file
 rm nmap_temp.log

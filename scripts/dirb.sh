@@ -53,22 +53,26 @@ dirb_scan() {
     loading_animation "$target_url" $pid
     wait $pid
 
-    echo -e "\n[+] Discovered Directories:"
-    print_line
-    printf "| %-8s | %-58s | %-8s |\n" "TYPE" "PATH" "STATUS"
-    print_line
+    # Print and save directories section
+    echo -e "\n[+] Discovered Directories:" | tee "$log_file"
+    print_line | tee -a "$log_file"
+    printf "| %-8s | %-58s | %-8s |\n" "TYPE" "PATH" "STATUS" | tee -a "$log_file"
+    print_line | tee -a "$log_file"
     
     grep "==> DIRECTORY:" "$temp_file" | while read -r line; do
         local dir=$(echo "$line" | awk '{print $3}')
+        # Print to screen with colors
         printf "| ${BLUE}%-8s${NC} | ${BLUE}%-58s${NC} | ${BLUE}%-8s${NC} |\n" "DIR" "$dir" "Found"
-        echo "[DIR] $dir" >> "$log_file"
+        # Save to log without colors
+        printf "| %-8s | %-58s | %-8s |\n" "DIR" "$dir" "Found" >> "$log_file"
     done
-    print_line
+    print_line | tee -a "$log_file"
 
-    echo -e "\n[+] Discovered Files:"
-    printf "+%-60s+%-6s+%-6s+\n" "------------------------------------------------------------" "--------" "--------"
-    printf "| %-58s | %-6s | %-6s |\n" "URL" "CODE" "SIZE"
-    printf "+%-60s+%-6s+%-6s+\n" "------------------------------------------------------------" "--------" "--------"
+    # Print and save files section
+    echo -e "\n[+] Discovered Files:" | tee -a "$log_file"
+    printf "+%-60s+%-6s+%-6s+\n" "------------------------------------------------------------" "--------" "--------" | tee -a "$log_file"
+    printf "| %-58s | %-6s | %-6s |\n" "URL" "CODE" "SIZE" | tee -a "$log_file"
+    printf "+%-60s+%-6s+%-6s+\n" "------------------------------------------------------------" "--------" "--------" | tee -a "$log_file"
 
     grep "+" "$temp_file" | while read -r line; do
         local url=$(echo "$line" | awk '{print $2}')
@@ -81,13 +85,15 @@ dirb_scan() {
             *) local color=$YELLOW ;;
         esac
 
+        # Print to screen with colors
         printf "| ${color}%-58s${NC} | ${color}%-6s${NC} | ${color}%-6s${NC} |\n" "$url" "$code" "$size"
-        printf "[FILE] %-60s | %-6s | %-6s\n" "$url" "$code" "$size" >> "$log_file"
+        # Save to log without colors
+        printf "| %-58s | %-6s | %-6s |\n" "$url" "$code" "$size" >> "$log_file"
     done
-    printf "+%-60s+%-6s+%-6s+\n" "------------------------------------------------------------" "--------" "--------"
+    printf "+%-60s+%-6s+%-6s+\n" "------------------------------------------------------------" "--------" "--------" | tee -a "$log_file"
 
     rm -f "$temp_file"
-    echo -e "\n[+] Log saved to: $log_file"
+    echo -e "\n[+] Log saved to: $log_file" | tee -a "$log_file"
 }
 
 # Main execution
