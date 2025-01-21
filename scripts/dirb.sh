@@ -14,11 +14,51 @@ echo -e "${YELLOW}                    DIRB SCANNING RESULT                    ${
 echo -e "${YELLOW}============================================================${NC}"
 echo
 
+# Default wordlist
+DEFAULT_WORDLIST="/usr/share/dirb/wordlists/common.txt"
+
 # Check if URL is provided as argument
 if [ $# -eq 0 ]; then
     echo "Please provide target URL"
     echo "Usage: ./dirb.sh <URL>"
     exit 1
+fi
+
+TARGET_URL=$1
+
+# Ask for custom wordlist
+echo -e "Do you want to use a custom wordlist? (default: $DEFAULT_WORDLIST)"
+read -p "Enter y/n: " use_custom
+echo
+
+if [[ $use_custom =~ ^[Yy]$ ]]; then
+    while true; do
+        read -p "Enter wordlist path: " custom_wordlist
+        echo -e "\nYou entered: ${GREEN}$custom_wordlist${NC}"
+        read -p "Is this correct? (y/n): " confirm
+        echo
+        
+        if [[ $confirm =~ ^[Yy]$ ]]; then
+            if [ -f "$custom_wordlist" ]; then
+                WORDLIST=$custom_wordlist
+                break
+            else
+                echo -e "${RED}Error: Wordlist file not found${NC}"
+                echo -e "Do you want to:"
+                echo "1. Try another wordlist path"
+                echo "2. Use default wordlist"
+                read -p "Enter choice (1-2): " retry_choice
+                echo
+                
+                if [ "$retry_choice" = "2" ]; then
+                    WORDLIST=$DEFAULT_WORDLIST
+                    break
+                fi
+            fi
+        fi
+    done
+else
+    WORDLIST=$DEFAULT_WORDLIST
 fi
 
 # Function to show loading animation
@@ -46,14 +86,17 @@ print_line() {
 
 dirb_scan() {
     local target_url=$1
+    local wordlist=$2
     local temp_file="/tmp/dirb_temp.txt"
     local log_file="../logs/dirb/dirbscan$(date +%Y%m%d_%H%M%S).log"
 
     # Create temp file if it doesn't exist
     touch "$temp_file"
 
+    echo -e "Using wordlist: ${GREEN}$wordlist${NC}\n"
+
     # Run dirb in background and show loading animation
-    dirb "$target_url" -o "$temp_file" >/dev/null 2>&1 &
+    dirb "$target_url" "$wordlist" -o "$temp_file" >/dev/null 2>&1 &
     local pid=$!
     loading_animation "$target_url" $pid
     wait $pid
@@ -103,10 +146,5 @@ dirb_scan() {
 
 # Main execution
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    if [ -z "$1" ]; then
-        read -p "Enter target URL: " url
-    else
-        url=$1
-    fi
-    dirb_scan "$url"
+    dirb_scan "$TARGET_URL" "$WORDLIST"
 fi
