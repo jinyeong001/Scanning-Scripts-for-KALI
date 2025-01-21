@@ -6,6 +6,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
 NC='\033[0m'
 
 # Print banner
@@ -141,7 +142,7 @@ dirb_scan() {
     printf "+%-60s+%-6s+%-6s+\n" "------------------------------------------------------------" "--------" "--------" | tee -a "$log_file"
 
     rm -f "$temp_file"
-    echo -e "\n[+] Log saved to: $log_file" | tee -a "$log_file"
+    echo -e "\n[+] DIRB scanning log saved to: ${CYAN}$log_file${NC}" | tee -a "$log_file"
 }
 
 # Main execution

@@ -5,6 +5,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
 NC='\033[0m'
 
 # Function to create necessary directories
@@ -105,6 +106,7 @@ while true; do
         3)
             echo -e "${YELLOW}Exiting...${NC}"
             echo -e "\n[+] Attack session ended at $(date '+%Y-%m-%d %H:%M:%S')"
+            echo -e "[+] Attack log saved to: ${CYAN}$log_file${NC}"
             exit 0
             ;;
         *)
@@ -117,6 +119,7 @@ while true; do
     if [[ ! $continue_scan =~ ^[Yy]$ ]]; then
         echo -e "${YELLOW}Exiting...${NC}"
         echo -e "\n[+] Attack session ended at $(date '+%Y-%m-%d %H:%M:%S')"
+        echo -e "[+] Attack log saved to: ${CYAN}$log_file${NC}"
         break
     fi
     echo
