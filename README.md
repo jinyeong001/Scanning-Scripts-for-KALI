@@ -72,8 +72,8 @@
 
 2. 메뉴에서 원하는 스캐닝 도구 선택:
    - 1: Nmap Port Scanner
-   - 2: Dirb Directory Scanner
-   - 3: Nikto Web Scanner
+   - 2: Nikto Web Scanner
+   - 3: Dirb Directory Scanner
    - 4: Gobuster Directory Scanner
    - 5: Exit
 
