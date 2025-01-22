@@ -202,7 +202,7 @@ nikto_scan() {
 
     # Cleanup
     rm -f "$temp_file"
-    echo -e "${GREEN}[+] Log saved to: ${CYAN}$log_file${NC}\n"
+    echo -e "\n[+] NIKTO scanning log saved to: ${CYAN}$log_file${NC}\n"
 }
 
 # Main execution

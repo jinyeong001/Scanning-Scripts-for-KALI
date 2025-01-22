@@ -50,7 +50,7 @@ sudo nmap $TARGET_IP -sV -v -p- 2>/dev/null > "$temp_file" &
 loading_animation "$TARGET_IP" $! "Nmap"
 
 # Print header and save to log
-echo -e "[+] Discovered Ports:" | tee "$log_file"
+echo -e "\n[+] Discovered Ports:" | tee "$log_file"
 
 # Function to print horizontal line
 print_line() {
@@ -89,4 +89,4 @@ print_line | tee -a "$log_file"
 # Clean up temporary file
 rm -f "$temp_file"
 
-echo -e "[+] NMAP scanning log saved to: ${CYAN}$log_file${NC}"
+echo -e "\n[+] NMAP scanning log saved to: ${CYAN}$log_file${NC}"

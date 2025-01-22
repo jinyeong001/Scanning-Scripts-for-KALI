@@ -100,9 +100,9 @@ dirb_scan() {
     loading_animation "$target_url" $! "Dirb"
 
     # Print and save directories section
-    echo -e "\n[+] Discovered Directories:" | tee "$log_file"
+    echo -e "\n${BLUE}[+] Discovered Directories:${NC}" | tee "$log_file"
     print_line | tee -a "$log_file"
-    printf "| %-8s | %-38s | %-13s | %-8s |\n" "TYPE" "PATH" "STATUS" "SIZE" | tee -a "$log_file"
+    printf "| %-8s | %-38s | %-13s | %-8s |\n" "TYPE" "PATH" "STATE" "SIZE" | tee -a "$log_file"
     print_line | tee -a "$log_file"
 
     # First process explicit directories
@@ -111,7 +111,7 @@ dirb_scan() {
         local size=$(curl -sI "$dir" | grep -i "content-length" | awk '{print $2}' | tr -d '\r')
         [ -z "$size" ] && size="N/A"
         
-        printf "| ${PURPLE}%-8s${NC} | ${BLUE}%-38s${NC} | ${GREEN}%-13s${NC} | ${CYAN}%-8s${NC} |\n" "DIR" "$dir" "301" "$size"
+        printf "| ${BLUE}%-8s${NC} | ${BLUE}%-38s${NC} | ${BLUE}%-13s${NC} | ${BLUE}%-8s${NC} |\n" "DIR" "$dir" "301" "$size"
         printf "| %-8s | %-38s | %-13s | %-8s |\n" "DIR" "$dir" "301" "$size" >> "$log_file"
     done
 
@@ -130,21 +130,21 @@ dirb_scan() {
 
         if [[ $url =~ /$ ]]; then
             case $code in
-                "200") local color=$GREEN ;;
+                "200") local color=$BLUE ;;
                 "403") local color=$RED ;;
                 *) local color=$YELLOW ;;
             esac
             
-            printf "| ${PURPLE}%-8s${NC} | ${BLUE}%-38s${NC} | ${color}%-13s${NC} | ${CYAN}%-8s${NC} |\n" "DIR" "$url" "$code" "$size"
+            printf "| ${color}%-8s${NC} | ${color}%-38s${NC} | ${color}%-13s${NC} | ${color}%-8s${NC} |\n" "DIR" "$url" "$code" "$size"
             printf "| %-8s | %-38s | %-13s | %-8s |\n" "DIR" "$url" "$code" "$size" >> "$log_file"
         fi
     done
     print_line | tee -a "$log_file"
 
     # Print and save files section
-    echo -e "\n[+] Discovered Files:" | tee -a "$log_file"
+    echo -e "\n${YELLOW}[+] Discovered Files:${NC}" | tee -a "$log_file"
     print_line | tee -a "$log_file"
-    printf "| %-8s | %-38s | %-13s | %-8s |\n" "TYPE" "PATH" "STATUS" "SIZE" | tee -a "$log_file"
+    printf "| %-8s | %-38s | %-13s | %-8s |\n" "TYPE" "PATH" "STATE" "SIZE" | tee -a "$log_file"
     print_line | tee -a "$log_file"
 
     # Process only files (entries that don't end with '/')
@@ -168,12 +168,12 @@ dirb_scan() {
             fi
 
             case $code in
-                "200") local color=$GREEN ;;
+                "200") local color=$YELLOW ;;
                 "403") local color=$RED ;;
                 *) local color=$YELLOW ;;
             esac
 
-            printf "| ${PURPLE}%-8s${NC} | ${color}%-38s${NC} | ${color}%-13s${NC} | ${CYAN}%-8s${NC} |\n" "$type" "$url" "$code" "$size"
+            printf "| ${color}%-8s${NC} | ${color}%-38s${NC} | ${color}%-13s${NC} | ${color}%-8s${NC} |\n" "$type" "$url" "$code" "$size"
             printf "| %-8s | %-38s | %-13s | %-8s |\n" "$type" "$url" "$code" "$size" >> "$log_file"
         fi
     done

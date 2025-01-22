@@ -32,8 +32,8 @@ show_menu() {
     echo -e "${BLUE}                  Available Scanning Tools                  ${NC}"
     echo -e "${BLUE}============================================================${NC}"
     echo "1. Nmap Port Scanner"
-    echo "2. Dirb Directory Scanner"
-    echo "3. Nikto Web Scanner"
+    echo "2. Nikto Web Scanner"
+    echo "3. Dirb Directory Scanner"
     echo "4. Gobuster Directory Scanner"
     echo "5. Exit"
     echo
@@ -134,10 +134,10 @@ while true; do
             run_nmap
             ;;
         2)
-            run_dirb
+            run_nikto
             ;;
         3)
-            run_nikto
+            run_dirb
             ;;
         4)
             run_gobuster
