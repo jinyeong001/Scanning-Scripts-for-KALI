@@ -10,21 +10,11 @@ NC='\033[0m'
 
 # Function to create necessary directories
 create_directories() {
-    # Create main logs directory if it doesn't exist
-    if [ ! -d "logs" ]; then
-        mkdir logs
-    fi
-
-    # Create subdirectories for each tool
-    if [ ! -d "logs/nmap" ]; then
-        mkdir logs/nmap
-    fi
-    if [ ! -d "logs/dirb" ]; then
-        mkdir logs/dirb
-    fi
-    if [ ! -d "logs/attack" ]; then
-        mkdir logs/attack
-    fi
+    mkdir -p logs/attack
+    mkdir -p logs/nmap
+    mkdir -p logs/dirb
+    mkdir -p logs/nikto
+    mkdir -p scripts
 }
 
 # Create log file with timestamp
@@ -42,9 +32,10 @@ show_menu() {
     echo -e "${BLUE}============================================================${NC}"
     echo "1. Nmap Port Scanner"
     echo "2. Dirb Directory Scanner"
-    echo "3. Exit"
+    echo "3. Nikto Web Scanner"
+    echo "4. Exit"
     echo
-    read -p "Select a tool (1-3): " choice
+    read -p "Select a tool (1-4): " choice
 }
 
 # Function to handle nmap scan
@@ -87,6 +78,26 @@ run_dirb() {
     done
 }
 
+# Function to handle nikto scan
+run_nikto() {
+    while true; do
+        read -p "Enter target URL: " target_url
+        if [ ! -z "$target_url" ]; then
+            echo -e "\nYou entered: ${GREEN}$target_url${NC}"
+            read -p "Is this correct? (y/n): " confirm
+            echo
+            if [[ $confirm =~ ^[Yy]$ ]]; then
+                cd scripts
+                ./nikto.sh "$target_url"
+                cd ..
+                break
+            fi
+        else
+            echo -e "${RED}Invalid URL${NC}"
+        fi
+    done
+}
+
 # Main execution loop
 create_directories
 first_run=true
@@ -104,6 +115,9 @@ while true; do
             run_dirb
             ;;
         3)
+            run_nikto
+            ;;
+        4)
             echo -e "${YELLOW}Exiting...${NC}"
             echo -e "\n[+] Attack session ended at $(date '+%Y-%m-%d %H:%M:%S')"
             echo -e "[+] Attack log saved to: ${CYAN}$log_file${NC}"
