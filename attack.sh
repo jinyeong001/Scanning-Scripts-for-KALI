@@ -14,6 +14,7 @@ create_directories() {
     mkdir -p logs/nmap
     mkdir -p logs/dirb
     mkdir -p logs/nikto
+    mkdir -p logs/gobuster
     mkdir -p scripts
 }
 
@@ -33,9 +34,10 @@ show_menu() {
     echo "1. Nmap Port Scanner"
     echo "2. Dirb Directory Scanner"
     echo "3. Nikto Web Scanner"
-    echo "4. Exit"
+    echo "4. Gobuster Directory Scanner"
+    echo "5. Exit"
     echo
-    read -p "Select a tool (1-4): " choice
+    read -p "Select a tool (1-5): " choice
 }
 
 # Function to handle nmap scan
@@ -98,6 +100,26 @@ run_nikto() {
     done
 }
 
+# Function to handle gobuster scan
+run_gobuster() {
+    while true; do
+        read -p "Enter target URL: " target_url
+        if [ ! -z "$target_url" ]; then
+            echo -e "\nYou entered: ${GREEN}$target_url${NC}"
+            read -p "Is this correct? (y/n): " confirm
+            echo
+            if [[ $confirm =~ ^[Yy]$ ]]; then
+                cd scripts
+                ./gobuster.sh "$target_url"
+                cd ..
+                break
+            fi
+        else
+            echo -e "${RED}Invalid URL${NC}"
+        fi
+    done
+}
+
 # Main execution loop
 create_directories
 first_run=true
@@ -118,6 +140,9 @@ while true; do
             run_nikto
             ;;
         4)
+            run_gobuster
+            ;;
+        5)
             echo -e "${YELLOW}Exiting...${NC}"
             echo -e "\n[+] Attack session ended at $(date '+%Y-%m-%d %H:%M:%S')"
             echo -e "[+] Attack log saved to: ${CYAN}$log_file${NC}"
