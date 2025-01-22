@@ -66,7 +66,7 @@ fi
 loading_animation() {
     local target=$1
     local pid=$2
-    local tool=$3  # 각 도구의 이름을 파라미터로 받음
+    local tool=$3
     local delay=0.1
     local spin=('-' '\' '|' '/')
     
@@ -81,7 +81,7 @@ loading_animation() {
 
 # Function to print horizontal line
 print_line() {
-    printf "+%-10s+%-60s+%-10s+\n" "----------" "------------------------------------------------------------" "----------"
+    printf "+----------+----------------------------------------+---------------+----------+\n"
 }
 
 dirb_scan() {
@@ -90,8 +90,8 @@ dirb_scan() {
     local temp_file="/tmp/dirb_temp.txt"
     local log_file="../logs/dirb/dirbscan$(date +%Y%m%d_%H%M%S).log"
 
-    # Create temp file if it doesn't exist
-    touch "$temp_file"
+    # Create logs directory if it doesn't exist
+    mkdir -p ../logs/dirb
 
     echo -e "Using wordlist: ${GREEN}$wordlist${NC}\n"
 
@@ -102,44 +102,85 @@ dirb_scan() {
     # Print and save directories section
     echo -e "\n[+] Discovered Directories:" | tee "$log_file"
     print_line | tee -a "$log_file"
-    printf "| %-8s | %-58s | %-8s |\n" "TYPE" "PATH" "STATUS" | tee -a "$log_file"
+    printf "| %-8s | %-38s | %-13s | %-8s |\n" "TYPE" "PATH" "STATUS" "SIZE" | tee -a "$log_file"
     print_line | tee -a "$log_file"
-    
+
+    # First process explicit directories
     grep "==> DIRECTORY:" "$temp_file" | while read -r line; do
         local dir=$(echo "$line" | awk '{print $3}')
-        # Print to screen with colors
-        printf "| ${BLUE}%-8s${NC} | ${BLUE}%-58s${NC} | ${BLUE}%-8s${NC} |\n" "DIR" "$dir" "Found"
-        # Save to log without colors
-        printf "| %-8s | %-58s | %-8s |\n" "DIR" "$dir" "Found" >> "$log_file"
+        local size=$(curl -sI "$dir" | grep -i "content-length" | awk '{print $2}' | tr -d '\r')
+        [ -z "$size" ] && size="N/A"
+        
+        printf "| ${PURPLE}%-8s${NC} | ${BLUE}%-38s${NC} | ${GREEN}%-13s${NC} | ${CYAN}%-8s${NC} |\n" "DIR" "$dir" "301" "$size"
+        printf "| %-8s | %-38s | %-13s | %-8s |\n" "DIR" "$dir" "301" "$size" >> "$log_file"
+    done
+
+    # Then process other entries that end with '/' (directories)
+    grep "+" "$temp_file" | grep -v "DIRECTORY" | while read -r line; do
+        local url=$(echo "$line" | awk '{print $2}')
+        if [[ $line =~ \(CODE:([0-9]+)\|SIZE:([0-9]+)\) ]]; then
+            local code="${BASH_REMATCH[1]}"
+            local size="${BASH_REMATCH[2]}"
+        else
+            local response=$(curl -sI "$url")
+            local code=$(echo "$response" | grep "HTTP" | awk '{print $2}')
+            local size=$(echo "$response" | grep -i "content-length" | awk '{print $2}' | tr -d '\r')
+        fi
+        [ -z "$size" ] && size="N/A"
+
+        if [[ $url =~ /$ ]]; then
+            case $code in
+                "200") local color=$GREEN ;;
+                "403") local color=$RED ;;
+                *) local color=$YELLOW ;;
+            esac
+            
+            printf "| ${PURPLE}%-8s${NC} | ${BLUE}%-38s${NC} | ${color}%-13s${NC} | ${CYAN}%-8s${NC} |\n" "DIR" "$url" "$code" "$size"
+            printf "| %-8s | %-38s | %-13s | %-8s |\n" "DIR" "$url" "$code" "$size" >> "$log_file"
+        fi
     done
     print_line | tee -a "$log_file"
 
     # Print and save files section
     echo -e "\n[+] Discovered Files:" | tee -a "$log_file"
-    printf "+%-60s+%-6s+%-6s+\n" "------------------------------------------------------------" "--------" "--------" | tee -a "$log_file"
-    printf "| %-58s | %-6s | %-6s |\n" "URL" "CODE" "SIZE" | tee -a "$log_file"
-    printf "+%-60s+%-6s+%-6s+\n" "------------------------------------------------------------" "--------" "--------" | tee -a "$log_file"
+    print_line | tee -a "$log_file"
+    printf "| %-8s | %-38s | %-13s | %-8s |\n" "TYPE" "PATH" "STATUS" "SIZE" | tee -a "$log_file"
+    print_line | tee -a "$log_file"
 
-    grep "+" "$temp_file" | while read -r line; do
+    # Process only files (entries that don't end with '/')
+    grep "+" "$temp_file" | grep -v "DIRECTORY" | while read -r line; do
         local url=$(echo "$line" | awk '{print $2}')
-        local code=$(echo "$line" | grep -oP 'CODE:\K[0-9]+')
-        local size=$(echo "$line" | grep -oP 'SIZE:\K[0-9]+')
+        if [[ ! $url =~ /$ ]]; then  # Only process if not ending with '/'
+            if [[ $line =~ \(CODE:([0-9]+)\|SIZE:([0-9]+)\) ]]; then
+                local code="${BASH_REMATCH[1]}"
+                local size="${BASH_REMATCH[2]}"
+            else
+                local response=$(curl -sI "$url")
+                local code=$(echo "$response" | grep "HTTP" | awk '{print $2}')
+                local size=$(echo "$response" | grep -i "content-length" | awk '{print $2}' | tr -d '\r')
+            fi
+            [ -z "$size" ] && size="N/A"
 
-        case $code in
-            "200") local color=$GREEN ;;
-            "403") local color=$RED ;;
-            *) local color=$YELLOW ;;
-        esac
+            # Get file extension and convert to uppercase for TYPE
+            local type="FILE"
+            if [[ $url =~ \.([^.]+)$ ]]; then
+                type="${BASH_REMATCH[1]^^}"
+            fi
 
-        # Print to screen with colors
-        printf "| ${color}%-58s${NC} | ${color}%-6s${NC} | ${color}%-6s${NC} |\n" "$url" "$code" "$size"
-        # Save to log without colors
-        printf "| %-58s | %-6s | %-6s |\n" "$url" "$code" "$size" >> "$log_file"
+            case $code in
+                "200") local color=$GREEN ;;
+                "403") local color=$RED ;;
+                *) local color=$YELLOW ;;
+            esac
+
+            printf "| ${PURPLE}%-8s${NC} | ${color}%-38s${NC} | ${color}%-13s${NC} | ${CYAN}%-8s${NC} |\n" "$type" "$url" "$code" "$size"
+            printf "| %-8s | %-38s | %-13s | %-8s |\n" "$type" "$url" "$code" "$size" >> "$log_file"
+        fi
     done
-    printf "+%-60s+%-6s+%-6s+\n" "------------------------------------------------------------" "--------" "--------" | tee -a "$log_file"
+    print_line | tee -a "$log_file"
 
     rm -f "$temp_file"
-    echo -e "\n[+] DIRB scanning log saved to: ${CYAN}$log_file${NC}" | tee -a "$log_file"
+    echo -e "\n[+] DIRB scanning log saved to: ${CYAN}$log_file${NC}"
 }
 
 # Main execution
