@@ -28,7 +28,7 @@ show_menu() {
         first_run=false
     fi
     echo -e "${BLUE}============================================================${NC}"
-    echo -e "${BLUE}                    Available Scanning Tools                ${NC}"
+    echo -e "${BLUE}                  Available Scanning Tools                  ${NC}"
     echo -e "${BLUE}============================================================${NC}"
     echo "1. Nmap Port Scanner"
     echo "2. Dirb Directory Scanner"

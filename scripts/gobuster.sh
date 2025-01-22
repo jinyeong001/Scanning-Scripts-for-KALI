@@ -91,18 +91,17 @@ fi
 loading_animation() {
     local target=$1
     local pid=$2
-    local delay=0.5
-    local dots=""
-    while ps -p $pid > /dev/null 2>&1; do
-        dots="."
-        echo -ne "\rScanning directories on $target$dots   "
-        sleep $delay
-        echo -ne "\rScanning directories on $target$dots$dots  "
-        sleep $delay
-        echo -ne "\rScanning directories on $target$dots$dots$dots "
-        sleep $delay
+    local tool=$3  # 각 도구의 이름을 파라미터로 받음
+    local delay=0.1
+    local spin=('-' '\' '|' '/')
+    
+    while ps -p $pid > /dev/null; do
+        for i in "${spin[@]}"; do
+            printf "\r${GREEN}[+] Scanning target ${BLUE}$target${NC} using ${PURPLE}$tool${NC} $i"
+            sleep $delay
+        done
     done
-    echo -ne "\n"
+    printf "\r${GREEN}[+] Scan completed for ${BLUE}$target${NC} using ${PURPLE}$tool${NC}    \n"
 }
 
 # Function to print horizontal line
@@ -125,63 +124,55 @@ gobuster_scan() {
     # Run gobuster with directory and file extensions
     gobuster dir -u "$target_url" -w "$wordlist" -q -x "$EXTENSIONS" > "$temp_file" 2>/dev/null &
     local pid=$!
-    loading_animation "$target_url" $pid
+    loading_animation "$target_url" $pid "Gobuster"
     wait $pid
 
     # Print and save directories section
     echo -e "\n[+] Discovered Directories:" | tee "$log_file"
-    printf "+----------+------------------------------------------------------------+----------+\n" | tee -a "$log_file"
-    printf "| %-8s | %-58s | %-8s |\n" "TYPE" "PATH" "STATUS" | tee -a "$log_file"
-    printf "+----------+------------------------------------------------------------+----------+\n" | tee -a "$log_file"
+    printf "+----------+------------------------------------------------------------+--------+--------+\n" | tee -a "$log_file"
+    printf "| %-8s | %-58s | %-6s | %-6s |\n" "TYPE" "PATH" "STATUS" "SIZE" | tee -a "$log_file"
+    printf "+----------+------------------------------------------------------------+--------+--------+\n" | tee -a "$log_file"
 
     # Process directories
     while read -r line; do
-        if [[ ! -z "$line" ]] && [[ "$line" =~ "301" || "$line" =~ "/$" ]]; then
-            local path=$(echo "$line" | awk '{print $1}')
-            # Construct full URL
+        if [[ "$line" =~ "Status: 301" ]]; then
+            local path=$(echo "$line" | sed 's/ (Status:.*//')
+            local status=$(echo "$line" | grep -oP '\(Status: \K[0-9]+')
+            local size=$(echo "$line" | grep -oP '\[Size: \K[0-9]+')
+            
             local full_url="${target_url%/}${path}"
             
-            # Print to screen with colors
-            printf "| ${BLUE}%-8s${NC} | ${BLUE}%-58s${NC} | ${BLUE}%-8s${NC} |\n" \
-                "DIR" "$full_url" "Found"
-            # Save to log without colors
-            printf "| %-8s | %-58s | %-8s |\n" \
-                "DIR" "$full_url" "Found" >> "$log_file"
+            printf "| %-8s | %-58s | %-6s | %-6s |\n" \
+                "DIR" "$full_url" "$status" "$size"
         fi
     done < "$temp_file"
-    printf "+----------+------------------------------------------------------------+----------+\n" | tee -a "$log_file"
+    printf "+----------+------------------------------------------------------------+--------+--------+\n" | tee -a "$log_file"
 
     # Print and save files section
     echo -e "\n[+] Discovered Files:" | tee -a "$log_file"
-    printf "+------------------------------------------------------------+--------+--------+\n" | tee -a "$log_file"
-    printf "| %-58s | %-6s | %-6s |\n" "URL" "CODE" "SIZE" | tee -a "$log_file"
-    printf "+------------------------------------------------------------+--------+--------+\n" | tee -a "$log_file"
+    printf "+----------+------------------------------------------------------------+--------+--------+\n" | tee -a "$log_file"
+    printf "| %-8s | %-58s | %-6s | %-6s |\n" "TYPE" "PATH" "CODE" "SIZE" | tee -a "$log_file"
+    printf "+----------+------------------------------------------------------------+--------+--------+\n" | tee -a "$log_file"
 
     # Process files
     while read -r line; do
-        if [[ ! -z "$line" ]] && [[ ! "$line" =~ "301" ]] && [[ ! "$line" =~ "/$" ]]; then
-            local path=$(echo "$line" | awk '{print $1}')
-            local status=$(echo "$line" | awk '{print $2}')
-            local size=$(echo "$line" | awk '{print $3}')
+        if [[ "$line" =~ \. ]] && [[ ! "$line" =~ "Status: 301" ]]; then
+            # 전체 경로 추출
+            local path=$(echo "$line" | sed 's/ (Status:.*//')
+            local status=$(echo "$line" | grep -oP '\(Status: \K[0-9]+')
+            local size=$(echo "$line" | grep -oP '\[Size: \K[0-9]+')
+            
+            # 확장자 추출 (마지막 점 이후의 문자열)
+            local file_type=$(echo "$path" | grep -o '[^.]*$' | tr '[:lower:]' '[:upper:]')
             
             # Construct full URL
             local full_url="${target_url%/}${path}"
-
-            case $status in
-                "200") local color=$GREEN ;;
-                "403") local color=$RED ;;
-                *) local color=$YELLOW ;;
-            esac
-
-            # Print to screen with colors
-            printf "| ${color}%-58s${NC} | ${color}%-6s${NC} | ${color}%-6s${NC} |\n" \
-                "$full_url" "$status" "$size"
-            # Save to log without colors
-            printf "| %-58s | %-6s | %-6s |\n" \
-                "$full_url" "$status" "$size" >> "$log_file"
+            
+            printf "| %-8s | %-58s | %-6s | %-6s |\n" \
+                "$file_type" "$full_url" "$status" "$size"
         fi
     done < "$temp_file"
-    printf "+------------------------------------------------------------+--------+--------+\n" | tee -a "$log_file"
+    printf "+----------+------------------------------------------------------------+--------+--------+\n" | tee -a "$log_file"
 
     rm -f "$temp_file"
     echo -e "\n[+] Gobuster scanning log saved to: ${CYAN}$log_file${NC}"

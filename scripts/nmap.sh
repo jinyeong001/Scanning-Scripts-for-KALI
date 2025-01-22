@@ -26,28 +26,27 @@ TARGET_IP=$1
 
 # Function to show loading animation
 loading_animation() {
-    local pid=$1
-    local delay=0.5
-    local dots=""
+    local target=$1
+    local pid=$2
+    local tool=$3  # 각 도구의 이름을 파라미터로 받음
+    local delay=0.1
+    local spin=('-' '\' '|' '/')
+    
     while ps -p $pid > /dev/null; do
-        dots="."
-        echo -ne "\rScanning ports on $TARGET_IP$dots   "
-        sleep $delay
-        echo -ne "\rScanning ports on $TARGET_IP$dots$dots  "
-        sleep $delay
-        echo -ne "\rScanning ports on $TARGET_IP$dots$dots$dots "
-        sleep $delay
+        for i in "${spin[@]}"; do
+            printf "\r${GREEN}[+] Scanning target ${BLUE}$target${NC} using ${PURPLE}$tool${NC} $i"
+            sleep $delay
+        done
     done
-    echo -ne "\n"
+    printf "\r${GREEN}[+] Scan completed for ${BLUE}$target${NC} using ${PURPLE}$tool${NC}    \n"
 }
 
 # Create log file name with timestamp in the correct directory
 log_file="../logs/nmap/nmapscan$(date +%Y%m%d_%H%M%S).log"
 
 # Run nmap scan in background and show loading animation
-echo -n "Starting Nmap scan on $TARGET_IP"
 sudo nmap $TARGET_IP -sV -v -p- 2>/dev/null > nmap_temp.log &
-loading_animation $!
+loading_animation "$TARGET_IP" $! "Nmap"
 
 # Print header and save to log
 echo -e "[+] Discovered Ports:" | tee "$log_file"

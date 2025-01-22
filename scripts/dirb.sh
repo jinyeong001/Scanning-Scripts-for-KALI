@@ -66,18 +66,17 @@ fi
 loading_animation() {
     local target=$1
     local pid=$2
-    local delay=0.5
-    local dots=""
-    while ps -p $pid > /dev/null 2>&1; do
-        dots="."
-        echo -ne "\rScanning directories on $target$dots   "
-        sleep $delay
-        echo -ne "\rScanning directories on $target$dots$dots  "
-        sleep $delay
-        echo -ne "\rScanning directories on $target$dots$dots$dots "
-        sleep $delay
+    local tool=$3  # 각 도구의 이름을 파라미터로 받음
+    local delay=0.1
+    local spin=('-' '\' '|' '/')
+    
+    while ps -p $pid > /dev/null; do
+        for i in "${spin[@]}"; do
+            printf "\r${GREEN}[+] Scanning target ${BLUE}$target${NC} using ${PURPLE}$tool${NC} $i"
+            sleep $delay
+        done
     done
-    echo -ne "\n"
+    printf "\r${GREEN}[+] Scan completed for ${BLUE}$target${NC} using ${PURPLE}$tool${NC}    \n"
 }
 
 # Function to print horizontal line
@@ -98,9 +97,7 @@ dirb_scan() {
 
     # Run dirb in background and show loading animation
     dirb "$target_url" "$wordlist" -o "$temp_file" >/dev/null 2>&1 &
-    local pid=$!
-    loading_animation "$target_url" $pid
-    wait $pid
+    loading_animation "$target_url" $! "Dirb"
 
     # Print and save directories section
     echo -e "\n[+] Discovered Directories:" | tee "$log_file"

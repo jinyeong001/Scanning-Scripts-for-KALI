@@ -28,17 +28,19 @@ nikto_scan() {
 
     # Function to show loading animation
     loading_animation() {
-        local pid=$1
+        local target=$1
+        local pid=$2
+        local tool=$3  # 각 도구의 이름을 파라미터로 받음
         local delay=0.1
         local spin=('-' '\' '|' '/')
         
         while ps -p $pid > /dev/null; do
             for i in "${spin[@]}"; do
-                printf "\r${GREEN}[+] Scanning target ${BLUE}$TARGET_URL${NC} $i"
+                printf "\r${GREEN}[+] Scanning target ${BLUE}$target${NC} using ${PURPLE}$tool${NC} $i"
                 sleep $delay
             done
         done
-        printf "\r${GREEN}[+] Scan completed for ${BLUE}$TARGET_URL${NC}    \n"
+        printf "\r${GREEN}[+] Scan completed for ${BLUE}$target${NC} using ${PURPLE}$tool${NC}    \n"
     }
 
     # Function to determine risk level
@@ -103,10 +105,8 @@ nikto_scan() {
     temp_file="/tmp/nikto_temp_$$.txt"
 
     # Run Nikto scan
-    echo -e "${GREEN}[+] Starting scan on $TARGET_URL${NC}"
     nikto -h "$TARGET_URL" > "$temp_file" &
-    pid=$!
-    loading_animation $pid
+    loading_animation "$TARGET_URL" $! "Nikto"
 
     # Calculate dynamic column widths
     col_widths=(25 95)
@@ -135,7 +135,14 @@ nikto_scan() {
     done < "$temp_file"
 
     # Display results header
-    echo -e "\n${GREEN}[+] Scan Results by Risk Level:${NC}" | tee "$log_file"
+    echo -e "\n${GREEN}[+] Scan Results by Risk Level:${NC}\n" | tee "$log_file"
+
+    # Print risk level indicators
+    echo -e "Risk Level Indicators:"
+    echo -e "${BLUE}■${NC} Information"
+    echo -e "${GREEN}■${NC} Low Risk"
+    echo -e "${YELLOW}■${NC} Medium Risk"
+    echo -e "${RED}■${NC} High Risk"
 
     # Information Level Findings
     if [ ${#info_findings[@]} -gt 0 ]; then
@@ -145,7 +152,7 @@ nikto_scan() {
         print_line "${col_widths[*]}" | tee -a "$log_file"
         for finding in "${info_findings[@]}"; do
             IFS='|' read -r category summary <<< "$finding"
-            printf "${BLUE}| %-23s | %-93s |${NC}\n" "$category" "$summary"
+            printf "|${BLUE} %-23s | %-93s ${NC}|\n" "$category" "$summary"
             printf "| %-23s | %-93s |\n" "$category" "$summary" >> "$log_file"
         done
         print_line "${col_widths[*]}" | tee -a "$log_file"
@@ -159,7 +166,7 @@ nikto_scan() {
         print_line "${col_widths[*]}" | tee -a "$log_file"
         for finding in "${low_findings[@]}"; do
             IFS='|' read -r category summary <<< "$finding"
-            printf "${GREEN}| %-23s | %-93s |${NC}\n" "$category" "$summary"
+            printf "|${GREEN} %-23s | %-93s ${NC}|\n" "$category" "$summary"
             printf "| %-23s | %-93s |\n" "$category" "$summary" >> "$log_file"
         done
         print_line "${col_widths[*]}" | tee -a "$log_file"
@@ -173,7 +180,7 @@ nikto_scan() {
         print_line "${col_widths[*]}" | tee -a "$log_file"
         for finding in "${medium_findings[@]}"; do
             IFS='|' read -r category summary <<< "$finding"
-            printf "${YELLOW}| %-23s | %-93s |${NC}\n" "$category" "$summary"
+            printf "|${YELLOW} %-23s | %-93s ${NC}|\n" "$category" "$summary"
             printf "| %-23s | %-93s |\n" "$category" "$summary" >> "$log_file"
         done
         print_line "${col_widths[*]}" | tee -a "$log_file"
@@ -187,18 +194,11 @@ nikto_scan() {
         print_line "${col_widths[*]}" | tee -a "$log_file"
         for finding in "${high_findings[@]}"; do
             IFS='|' read -r category summary <<< "$finding"
-            printf "${RED}| %-23s | %-93s |${NC}\n" "$category" "$summary"
+            printf "|${RED} %-23s | %-93s ${NC}|\n" "$category" "$summary"
             printf "| %-23s | %-93s |\n" "$category" "$summary" >> "$log_file"
         done
         print_line "${col_widths[*]}" | tee -a "$log_file"
     fi
-
-    # Print risk level indicators
-    echo -e "\nRisk Level Indicators:"
-    echo -e "${BLUE}■${NC} Information"
-    echo -e "${GREEN}■${NC} Low Risk"
-    echo -e "${YELLOW}■${NC} Medium Risk"
-    echo -e "${RED}■${NC} High Risk\n"
 
     # Cleanup
     rm -f "$temp_file"
