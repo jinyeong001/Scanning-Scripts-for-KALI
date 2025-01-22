@@ -28,7 +28,7 @@ TARGET_IP=$1
 loading_animation() {
     local target=$1
     local pid=$2
-    local tool=$3  # 각 도구의 이름을 파라미터로 받음
+    local tool=$3
     local delay=0.1
     local spin=('-' '\' '|' '/')
     
@@ -43,9 +43,10 @@ loading_animation() {
 
 # Create log file name with timestamp in the correct directory
 log_file="../logs/nmap/nmapscan$(date +%Y%m%d_%H%M%S).log"
+temp_file="/tmp/nmap_temp.txt"
 
 # Run nmap scan in background and show loading animation
-sudo nmap $TARGET_IP -sV -v -p- 2>/dev/null > nmap_temp.log &
+sudo nmap $TARGET_IP -sV -v -p- 2>/dev/null > "$temp_file" &
 loading_animation "$TARGET_IP" $! "Nmap"
 
 # Print header and save to log
@@ -62,7 +63,7 @@ printf "| %-10s | %-10s | %-16s | %-39s |\n" "PORT" "STATE" "SERVICE" "VERSION" 
 print_line | tee -a "$log_file"
 
 # Extract and format the port information
-sed -n '/^PORT/,/^MAC Address/p' nmap_temp.log | \
+sed -n '/^PORT/,/^MAC Address/p' "$temp_file" | \
 grep "^[0-9]" | \
 while read line; do
     port=$(echo $line | awk '{print $1}')
@@ -79,16 +80,13 @@ while read line; do
     
     # Print to screen with colors
     printf "${NC}| ${color}%-10s ${NC}|${color} %-10s ${NC}|${color} %-16s ${NC}|${color} %-39s ${NC}|\n" \
-        "$port" "$state" "$service" "$version"
-    # Save to log file without colors
-    printf "| %-10s | %-10s | %-16s | %-39s |\n" \
-        "$port" "$state" "$service" "$version" >> "$log_file"
+        "$port" "$state" "$service" "$version" | tee -a "$log_file"
 done
 
 # Print and save bottom line
 print_line | tee -a "$log_file"
 
 # Clean up temporary file
-rm nmap_temp.log
+rm -f "$temp_file"
 
 echo -e "[+] NMAP scanning log saved to: ${CYAN}$log_file${NC}"
