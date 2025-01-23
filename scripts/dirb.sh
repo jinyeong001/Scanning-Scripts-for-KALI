@@ -81,7 +81,7 @@ loading_animation() {
 
 # Function to print horizontal line
 print_line() {
-    printf "+----------+----------------------------------------+---------------+----------+\n"
+    printf "+----------+--------------------------------------------------+----------+----------+\n"
 }
 
 dirb_scan() {
@@ -102,7 +102,7 @@ dirb_scan() {
     # Print and save directories section
     echo -e "\n${BLUE}[+] Discovered Directories:${NC}" | tee "$log_file"
     print_line | tee -a "$log_file"
-    printf "| %-8s | %-38s | %-13s | %-8s |\n" "TYPE" "PATH" "STATE" "SIZE" | tee -a "$log_file"
+    printf "| %-8s | %-48s | %-8s | %-8s |\n" "TYPE" "PATH" "STATE" "SIZE" | tee -a "$log_file"
     print_line | tee -a "$log_file"
 
     # First process explicit directories
@@ -111,8 +111,8 @@ dirb_scan() {
         local size=$(curl -sI "$dir" | grep -i "content-length" | awk '{print $2}' | tr -d '\r')
         [ -z "$size" ] && size="N/A"
         
-        printf "| ${BLUE}%-8s${NC} | ${BLUE}%-38s${NC} | ${BLUE}%-13s${NC} | ${BLUE}%-8s${NC} |\n" "DIR" "$dir" "301" "$size"
-        printf "| %-8s | %-38s | %-13s | %-8s |\n" "DIR" "$dir" "301" "$size" >> "$log_file"
+        printf "| ${BLUE}%-8s${NC} | ${BLUE}%-48s${NC} | ${BLUE}%-8s${NC} | ${BLUE}%-8s${NC} |\n" "DIR" "$dir" "301" "$size"
+        printf "| %-8s | %-48s | %-8s | %-8s |\n" "DIR" "$dir" "301" "$size" >> "$log_file"
     done
 
     # Then process other entries that end with '/' (directories)
@@ -135,8 +135,8 @@ dirb_scan() {
                 *) local color=$YELLOW ;;
             esac
             
-            printf "| ${color}%-8s${NC} | ${color}%-38s${NC} | ${color}%-13s${NC} | ${color}%-8s${NC} |\n" "DIR" "$url" "$code" "$size"
-            printf "| %-8s | %-38s | %-13s | %-8s |\n" "DIR" "$url" "$code" "$size" >> "$log_file"
+            printf "| ${color}%-8s${NC} | ${color}%-48s${NC} | ${color}%-8s${NC} | ${color}%-8s${NC} |\n" "DIR" "$url" "$code" "$size"
+            printf "| %-8s | %-48s | %-8s | %-8s |\n" "DIR" "$url" "$code" "$size" >> "$log_file"
         fi
     done
     print_line | tee -a "$log_file"
@@ -144,13 +144,13 @@ dirb_scan() {
     # Print and save files section
     echo -e "\n${YELLOW}[+] Discovered Files:${NC}" | tee -a "$log_file"
     print_line | tee -a "$log_file"
-    printf "| %-8s | %-38s | %-13s | %-8s |\n" "TYPE" "PATH" "STATE" "SIZE" | tee -a "$log_file"
+    printf "| %-8s | %-48s | %-8s | %-8s |\n" "TYPE" "PATH" "STATE" "SIZE" | tee -a "$log_file"
     print_line | tee -a "$log_file"
 
     # Process only files (entries that don't end with '/')
     grep "+" "$temp_file" | grep -v "DIRECTORY" | while read -r line; do
         local url=$(echo "$line" | awk '{print $2}')
-        if [[ ! $url =~ /$ ]]; then  # Only process if not ending with '/'
+        if [[ ! $url =~ /$ ]]; then 
             if [[ $line =~ \(CODE:([0-9]+)\|SIZE:([0-9]+)\) ]]; then
                 local code="${BASH_REMATCH[1]}"
                 local size="${BASH_REMATCH[2]}"
@@ -161,10 +161,14 @@ dirb_scan() {
             fi
             [ -z "$size" ] && size="N/A"
 
-            # Get file extension and convert to uppercase for TYPE
-            local type="FILE"
-            if [[ $url =~ \.([^.]+)$ ]]; then
-                type="${BASH_REMATCH[1]^^}"
+            local filename="${url##*/}"
+            local type="UNDEFINED"
+
+            if [[ $filename =~ \. ]]; then
+                local extension="${filename##*.}"
+                type="${extension^^}"
+            else
+                type="FILE"
             fi
 
             case $code in
@@ -173,8 +177,8 @@ dirb_scan() {
                 *) local color=$YELLOW ;;
             esac
 
-            printf "| ${color}%-8s${NC} | ${color}%-38s${NC} | ${color}%-13s${NC} | ${color}%-8s${NC} |\n" "$type" "$url" "$code" "$size"
-            printf "| %-8s | %-38s | %-13s | %-8s |\n" "$type" "$url" "$code" "$size" >> "$log_file"
+            printf "| ${color}%-8s${NC} | ${color}%-48s${NC} | ${color}%-8s${NC} | ${color}%-8s${NC} |\n" "$type" "$url" "$code" "$size"
+            printf "| %-8s | %-48s | %-8s | %-8s |\n" "$type" "$url" "$code" "$size" >> "$log_file"
         fi
     done
     print_line | tee -a "$log_file"

@@ -47,7 +47,7 @@ loading_animation() {
 
 # Function to print horizontal line
 print_line() {
-    printf "+----------+----------------------------------------+---------------+----------+\n"
+    printf "+----------+--------------------------------------------------+----------+----------+\n"
 }
 
 # Ask for custom wordlist
@@ -117,7 +117,7 @@ gobuster_analyze() {
     # Print and save directories section
     echo -e "\n${BLUE}[+] Discovered Directories:${NC}" | tee "$log_file"
     print_line | tee -a "$log_file"
-    printf "| %-8s | %-38s | %-13s | %-8s |\n" "TYPE" "PATH" "STATE" "SIZE" | tee -a "$log_file"
+    printf "| %-8s | %-48s | %-8s | %-8s |\n" "TYPE" "PATH" "STATE" "SIZE" | tee -a "$log_file"
     print_line | tee -a "$log_file"
 
     # First pass: Print directories (Status: 301)
@@ -131,8 +131,8 @@ gobuster_analyze() {
             local full_url="${target_url}${path}"
             
             if [ "$status" -eq 301 ]; then
-                printf "| ${BLUE}%-8s${NC} | ${BLUE}%-38s${NC} | ${BLUE}%-13s${NC} | ${BLUE}%-8s${NC} |\n" "DIR" "$full_url" "$status" "$size"
-                printf "| %-8s | %-38s | %-13s | %-8s |\n" "DIR" "$full_url" "$status" "$size" >> "$log_file"
+                printf "| ${BLUE}%-8s${NC} | ${BLUE}%-48s${NC} | ${BLUE}%-8s${NC} | ${BLUE}%-8s${NC} |\n" "DIR" "$full_url" "$status" "$size"
+                printf "| %-8s | %-48s | %-8s | %-8s |\n" "DIR" "$full_url" "$status" "$size" >> "$log_file"
             fi
         fi
     done < "$temp_file"
@@ -141,7 +141,7 @@ gobuster_analyze() {
     # Print files section
     echo -e "\n${YELLOW}[+] Discovered Files:${NC}" | tee -a "$log_file"
     print_line | tee -a "$log_file"
-    printf "| %-8s | %-38s | %-13s | %-8s |\n" "TYPE" "PATH" "STATE" "SIZE" | tee -a "$log_file"
+    printf "| %-8s | %-48s | %-8s | %-8s |\n" "TYPE" "PATH" "STATE" "SIZE" | tee -a "$log_file"
     print_line | tee -a "$log_file"
 
     # Second pass: Print files (Status: 200)
@@ -161,8 +161,8 @@ gobuster_analyze() {
                     file_type="${BASH_REMATCH[1]^^}"
                 fi
                 
-                printf "| ${YELLOW}%-8s${NC} | ${YELLOW}%-38s${NC} | ${YELLOW}%-13s${NC} | ${YELLOW}%-8s${NC} |\n" "$file_type" "$full_url" "$status" "$size"
-                printf "| %-8s | %-38s | %-13s | %-8s |\n" "$file_type" "$full_url" "$status" "$size" >> "$log_file"
+                printf "| ${YELLOW}%-8s${NC} | ${YELLOW}%-48s${NC} | ${YELLOW}%-8s${NC} | ${YELLOW}%-8s${NC} |\n" "$file_type" "$full_url" "$status" "$size"
+                printf "| %-8s | %-48s | %-8s | %-8s |\n" "$file_type" "$full_url" "$status" "$size" >> "$log_file"
             fi
         fi
     done < "$temp_file"

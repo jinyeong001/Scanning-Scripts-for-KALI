@@ -152,7 +152,7 @@ nikto_scan() {
         print_line "${col_widths[*]}" | tee -a "$log_file"
         for finding in "${info_findings[@]}"; do
             IFS='|' read -r category summary <<< "$finding"
-            printf "|${BLUE} %-23s | %-93s ${NC}|\n" "$category" "$summary"
+            printf "|${BLUE} %-23s${NC} | ${BLUE}%-93s ${NC}|\n" "$category" "$summary"
             printf "| %-23s | %-93s |\n" "$category" "$summary" >> "$log_file"
         done
         print_line "${col_widths[*]}" | tee -a "$log_file"
@@ -166,7 +166,7 @@ nikto_scan() {
         print_line "${col_widths[*]}" | tee -a "$log_file"
         for finding in "${low_findings[@]}"; do
             IFS='|' read -r category summary <<< "$finding"
-            printf "|${GREEN} %-23s | %-93s ${NC}|\n" "$category" "$summary"
+            printf "|${GREEN} %-23s${NC} | ${GREEN}%-93s ${NC}|\n" "$category" "$summary"
             printf "| %-23s | %-93s |\n" "$category" "$summary" >> "$log_file"
         done
         print_line "${col_widths[*]}" | tee -a "$log_file"
@@ -180,7 +180,7 @@ nikto_scan() {
         print_line "${col_widths[*]}" | tee -a "$log_file"
         for finding in "${medium_findings[@]}"; do
             IFS='|' read -r category summary <<< "$finding"
-            printf "|${YELLOW} %-23s | %-93s ${NC}|\n" "$category" "$summary"
+            printf "|${YELLOW} %-23s${NC} | ${YELLOW}%-93s ${NC}|\n" "$category" "$summary"
             printf "| %-23s | %-93s |\n" "$category" "$summary" >> "$log_file"
         done
         print_line "${col_widths[*]}" | tee -a "$log_file"
@@ -194,7 +194,7 @@ nikto_scan() {
         print_line "${col_widths[*]}" | tee -a "$log_file"
         for finding in "${high_findings[@]}"; do
             IFS='|' read -r category summary <<< "$finding"
-            printf "|${RED} %-23s | %-93s ${NC}|\n" "$category" "$summary"
+            printf "|${RED} %-23s${NC} | ${RED}%-93s ${NC}|\n" "$category" "$summary"
             printf "| %-23s | %-93s |\n" "$category" "$summary" >> "$log_file"
         done
         print_line "${col_widths[*]}" | tee -a "$log_file"
