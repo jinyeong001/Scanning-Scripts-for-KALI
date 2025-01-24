@@ -15,6 +15,7 @@ create_directories() {
     mkdir -p logs/dirb
     mkdir -p logs/nikto
     mkdir -p logs/gobuster
+    mkdir -p logs/sqlmap
     mkdir -p scripts
 }
 
@@ -32,12 +33,13 @@ show_menu() {
     echo -e "${BLUE}                  Available Scanning Tools                  ${NC}"
     echo -e "${BLUE}============================================================${NC}"
     echo "1. Nmap Port Scanner"
-    echo "2. Nikto Web Scanner"
+    echo "2. Nikto Web Scanner" 
     echo "3. Dirb Directory Scanner"
     echo "4. Gobuster Directory Scanner"
-    echo "5. Exit"
+    echo "5. SQLMap SQL Injection Scanner"
+    echo "6. Exit"
     echo
-    read -p "Select a tool (1-5): " choice
+    read -p "Select a tool (1-6): " choice
 }
 
 # Function to handle nmap scan
@@ -120,6 +122,26 @@ run_gobuster() {
     done
 }
 
+# Function to handle sqlmap scan
+run_sqlmap() {
+    while true; do
+        read -p "Enter target URL: " target_url
+        if [ ! -z "$target_url" ]; then
+            echo -e "\nYou entered: ${GREEN}$target_url${NC}"
+            read -p "Is this correct? (y/n): " confirm
+            echo
+            if [[ $confirm =~ ^[Yy]$ ]]; then
+                cd scripts
+                ./sqlmap.sh "$target_url"
+                cd ..
+                break
+            fi
+        else
+            echo -e "${RED}Invalid URL${NC}"
+        fi
+    done
+}
+
 # Main execution loop
 create_directories
 first_run=true
@@ -143,6 +165,9 @@ while true; do
             run_gobuster
             ;;
         5)
+            run_sqlmap
+            ;;
+        6)
             echo -e "${YELLOW}Exiting...${NC}"
             echo -e "\n[+] Attack session ended at $(date '+%Y-%m-%d %H:%M:%S')"
             echo -e "[+] Attack log saved to: ${CYAN}$log_file${NC}"
